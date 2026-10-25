@@ -1,0 +1,15 @@
+{
+  "name": "말포이 양은 솔직하지 않다",
+  "short_name": "말포이 양",
+  "description": "해리 포터 젠더스왑 팬픽 연재",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0e22",
+  "theme_color": "#0b0e22",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

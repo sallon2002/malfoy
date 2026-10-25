@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko" data-theme="paper">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>말포이 양은 솔직하지 않다</title>
+    <meta name="description" content="해리 포터 젠더스왑 팬픽 연재 — 말포이 양은 솔직하지 않다" />
+    <meta name="theme-color" content="#0b0e22" />
+    <!-- 아이폰 「홈 화면에 추가」: 주소창 없이 책 앱처럼 열리고, 아이콘·이름이 붙는다 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="말포이 양" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <!-- 본문은 Noto Serif KR(명조), 화면 글씨는 Pretendard(고딕). 오프라인이면 시스템 폰트로 -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="styles.css?v=20261025" />
+  </head>
+  <body>
+    <!-- ───────── 서재 (표지 + 이어 읽기 + 목차) ───────── -->
+    <main id="library" class="view">
+      <header class="cover">
+        <svg class="sky" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g id="dust"></g>
+          <!-- 제목과 겹치지 않게 용자리를 위쪽에 작게 -->
+          <g transform="translate(24 -4) scale(0.7)">
+            <g class="draco">
+              <polyline points="70,20 80,25 77,35 67,31 70,20" />
+              <polyline points="67,31 57,43 62,55 50,62 38,57 29,66 35,77 22,84" />
+            </g>
+            <g id="draco-stars"></g>
+          </g>
+        </svg>
+        <div class="cover-text">
+          <p class="kicker">해리 포터 팬픽 · 젠더스왑 AU</p>
+          <h1>말포이 양은<br />솔직하지 않다</h1>
+          <p class="cover-sub" id="cover-sub"></p>
+        </div>
+      </header>
+
+      <section class="continue" id="continue" aria-live="polite"></section>
+
+      <section class="toc">
+        <h2>목차</h2>
+        <div id="toc"></div>
+      </section>
+
+      <footer class="lib-foot">
+        <p>비상업 팬픽입니다. 해리 포터의 인물과 세계는 원작자에게 있어요.</p>
+        <p class="tip">아이폰 Safari에서 <b>공유 → 홈 화면에 추가</b>를 하면 앱처럼 열리고, 읽던 곳이 더 안전하게 기억돼요.</p>
+      </footer>
+    </main>
+
+    <!-- ───────── 읽기 화면 ───────── -->
+    <div id="reader" class="view" hidden>
+      <header class="bar bar-top" id="bar-top">
+        <button class="bar-btn" id="back" type="button" aria-label="목차로">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          <span>목차</span>
+        </button>
+        <p class="bar-title" id="bar-title"></p>
+        <button class="bar-btn aa" id="open-settings" type="button" aria-label="보기 설정">가<small>가</small></button>
+        <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+      </header>
+
+      <article class="page" id="page"></article>
+
+      <footer class="bar bar-bottom" id="bar-bottom">
+        <span id="pct">0%</span>
+        <span id="left"></span>
+      </footer>
+    </div>
+
+    <!-- ───────── 보기 설정 시트 ───────── -->
+    <div class="sheet-bg" id="sheet-bg" hidden></div>
+    <section class="sheet" id="sheet" aria-label="보기 설정" aria-hidden="true">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="row">
+        <span class="row-label">글자 크기</span>
+        <div class="stepper">
+          <button type="button" data-act="size" data-v="-1" aria-label="글자 작게">가</button>
+          <output id="size-out">18</output>
+          <button type="button" data-act="size" data-v="1" aria-label="글자 크게" class="big">가</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="row-label">줄 간격</span>
+        <div class="seg" data-group="lead">
+          <button type="button" data-act="lead" data-v="0">좁게</button>
+          <button type="button" data-act="lead" data-v="1">보통</button>
+          <button type="button" data-act="lead" data-v="2">넓게</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="row-label">글꼴</span>
+        <div class="seg" data-group="font">
+          <button type="button" data-act="font" data-v="serif" class="f-serif">명조</button>
+          <button type="button" data-act="font" data-v="sans" class="f-sans">고딕</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="row-label">배경</span>
+        <div class="swatches" data-group="theme">
+          <button type="button" data-act="theme" data-v="paper" class="sw sw-paper">종이</button>
+          <button type="button" data-act="theme" data-v="sepia" class="sw sw-sepia">세피아</button>
+          <button type="button" data-act="theme" data-v="night" class="sw sw-night">밤</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="data/chapters.js?v=20261025"></script>
+    <script src="app.js?v=20261025"></script>
+  </body>
+</html>
