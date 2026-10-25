@@ -677,6 +677,74 @@ a {
   transform: translate(-50%, 0);
 }
 
+/* ───────── KR ⇄ JP ───────── */
+.lang-toggle {
+  position: absolute;
+  top: calc(var(--safe-t) + 14px);
+  right: calc(16px + var(--safe-r));
+  z-index: 2;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.lang-toggle button {
+  min-width: 46px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(244, 241, 234, 0.6);
+  transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
+}
+.lang-toggle button.on {
+  background: var(--gold);
+  color: #1a1305;
+}
+
+/* 일본어: 명조·고딕 글꼴, 금칙 처리, 지문 첫머리 한 칸 들여쓰기 */
+:root:lang(ja) {
+  --serif: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  --sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Pretendard Variable", sans-serif;
+}
+:lang(ja) .page {
+  word-break: normal;
+  line-break: strict;
+  letter-spacing: 0.02em;
+}
+:lang(ja) .cover h1,
+:lang(ja) .cont-title,
+:lang(ja) .toc-title {
+  word-break: normal;
+  line-break: strict;
+}
+.body p.ind {
+  text-indent: 1em;
+}
+
+/* 그림책 손글씨: 아이가 연필로 꾹꾹 눌러쓴 한 줄 */
+.body p.hand {
+  margin: 1.4em 0 1.6em;
+  text-align: center;
+  font-family: "Nanum Pen Script", var(--serif);
+  font-size: 1.32em;
+  line-height: 1.5;
+  color: var(--accent);
+}
+.body p.hand em {
+  font-style: normal;
+}
+:lang(ja) .body p.hand {
+  font-family: "Klee One", var(--serif);
+  font-size: 1.05em;
+  line-height: 1.8;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

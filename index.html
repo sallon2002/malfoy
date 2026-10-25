@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>말포이 양은 솔직하지 않다</title>
-    <meta name="description" content="해리 포터 젠더스왑 팬픽 연재 — 말포이 양은 솔직하지 않다" />
+    <meta name="description" content="해리 포터 젠더스왑 팬픽 연재 — 말포이 양은 솔직하지 않다 / マルフォイ嬢は素直じゃない" />
     <meta name="theme-color" content="#0b0e22" />
-    <!-- 아이폰 「홈 화면에 추가」: 주소창 없이 책 앱처럼 열리고, 아이콘·이름이 붙는다 -->
+    <!-- 아이폰 「홈 화면에 추가」: 주소창 없이 책 앱처럼 열리고, 아이콘·이름이 붙는다 (이름은 고른 언어로 바뀐다) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -15,15 +15,19 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/png" href="icons/icon-192.png" />
-    <!-- 본문은 Noto Serif KR(명조), 화면 글씨는 Pretendard(고딕). 오프라인이면 시스템 폰트로 -->
+    <!-- 한국어 본문 Noto Serif KR, 일본어 본문 Noto Serif JP, 화면 글씨 Pretendard.
+         그림책 손글씨는 나눔손글씨 펜(한국어) · Klee One(일본어). 오프라인이면 시스템 폰트로 -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" />
-    <link rel="stylesheet" href="styles.css?v=20261025" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Serif+JP:wght@400;600;700&family=Nanum+Pen+Script&family=Klee+One:wght@600&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css?v=20261025c" />
   </head>
   <body>
     <!-- ───────── 서재 (표지 + 이어 읽기 + 목차) ───────── -->
@@ -40,9 +44,15 @@
             <g id="draco-stars"></g>
           </g>
         </svg>
+
+        <div class="lang-toggle" role="group" aria-label="언어 / 言語">
+          <button type="button" data-lang="ko">KR</button>
+          <button type="button" data-lang="ja">JP</button>
+        </div>
+
         <div class="cover-text">
-          <p class="kicker">해리 포터 팬픽 · 젠더스왑 AU</p>
-          <h1>말포이 양은<br />솔직하지 않다</h1>
+          <p class="kicker" data-t="kicker"></p>
+          <h1 data-t="coverTitle"></h1>
           <p class="cover-sub" id="cover-sub"></p>
         </div>
       </header>
@@ -50,25 +60,25 @@
       <section class="continue" id="continue" aria-live="polite"></section>
 
       <section class="toc">
-        <h2>목차</h2>
+        <h2 data-t="toc"></h2>
         <div id="toc"></div>
       </section>
 
       <footer class="lib-foot">
-        <p>비상업 팬픽입니다. 해리 포터의 인물과 세계는 원작자에게 있어요.</p>
-        <p class="tip">아이폰 Safari에서 <b>공유 → 홈 화면에 추가</b>를 하면 앱처럼 열리고, 읽던 곳이 더 안전하게 기억돼요.</p>
+        <p data-t="foot1"></p>
+        <p class="tip" data-t="foot2"></p>
       </footer>
     </main>
 
     <!-- ───────── 읽기 화면 ───────── -->
     <div id="reader" class="view" hidden>
       <header class="bar bar-top" id="bar-top">
-        <button class="bar-btn" id="back" type="button" aria-label="목차로">
+        <button class="bar-btn" id="back" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-          <span>목차</span>
+          <span data-t="back"></span>
         </button>
         <p class="bar-title" id="bar-title"></p>
-        <button class="bar-btn aa" id="open-settings" type="button" aria-label="보기 설정">가<small>가</small></button>
+        <button class="bar-btn aa" id="open-settings" type="button"><span id="aa-glyph">가</span><small id="aa-glyph-s">가</small></button>
         <div class="progress" aria-hidden="true"><i id="progress"></i></div>
       </header>
 
@@ -82,44 +92,51 @@
 
     <!-- ───────── 보기 설정 시트 ───────── -->
     <div class="sheet-bg" id="sheet-bg" hidden></div>
-    <section class="sheet" id="sheet" aria-label="보기 설정" aria-hidden="true">
+    <section class="sheet" id="sheet" aria-hidden="true">
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="row">
-        <span class="row-label">글자 크기</span>
+        <span class="row-label" data-t="lang"></span>
+        <div class="seg" data-group="lang">
+          <button type="button" data-act="lang" data-v="ko">KR</button>
+          <button type="button" data-act="lang" data-v="ja">JP</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="row-label" data-t="size"></span>
         <div class="stepper">
-          <button type="button" data-act="size" data-v="-1" aria-label="글자 작게">가</button>
+          <button type="button" data-act="size" data-v="-1" class="glyph"></button>
           <output id="size-out">18</output>
-          <button type="button" data-act="size" data-v="1" aria-label="글자 크게" class="big">가</button>
+          <button type="button" data-act="size" data-v="1" class="glyph big"></button>
         </div>
       </div>
       <div class="row">
-        <span class="row-label">줄 간격</span>
+        <span class="row-label" data-t="lead"></span>
         <div class="seg" data-group="lead">
-          <button type="button" data-act="lead" data-v="0">좁게</button>
-          <button type="button" data-act="lead" data-v="1">보통</button>
-          <button type="button" data-act="lead" data-v="2">넓게</button>
+          <button type="button" data-act="lead" data-v="0" data-t="lead0"></button>
+          <button type="button" data-act="lead" data-v="1" data-t="lead1"></button>
+          <button type="button" data-act="lead" data-v="2" data-t="lead2"></button>
         </div>
       </div>
       <div class="row">
-        <span class="row-label">글꼴</span>
+        <span class="row-label" data-t="font"></span>
         <div class="seg" data-group="font">
-          <button type="button" data-act="font" data-v="serif" class="f-serif">명조</button>
-          <button type="button" data-act="font" data-v="sans" class="f-sans">고딕</button>
+          <button type="button" data-act="font" data-v="serif" class="f-serif" data-t="serif"></button>
+          <button type="button" data-act="font" data-v="sans" class="f-sans" data-t="sans"></button>
         </div>
       </div>
       <div class="row">
-        <span class="row-label">배경</span>
+        <span class="row-label" data-t="theme"></span>
         <div class="swatches" data-group="theme">
-          <button type="button" data-act="theme" data-v="paper" class="sw sw-paper">종이</button>
-          <button type="button" data-act="theme" data-v="sepia" class="sw sw-sepia">세피아</button>
-          <button type="button" data-act="theme" data-v="night" class="sw sw-night">밤</button>
+          <button type="button" data-act="theme" data-v="paper" class="sw sw-paper" data-t="paper"></button>
+          <button type="button" data-act="theme" data-v="sepia" class="sw sw-sepia" data-t="sepia"></button>
+          <button type="button" data-act="theme" data-v="night" class="sw sw-night" data-t="night"></button>
         </div>
       </div>
     </section>
 
     <div class="toast" id="toast" role="status"></div>
 
-    <script src="data/chapters.js?v=20261025"></script>
-    <script src="app.js?v=20261025"></script>
+    <script src="data/chapters.js?v=20261025c"></script>
+    <script src="app.js?v=20261025c"></script>
   </body>
 </html>
