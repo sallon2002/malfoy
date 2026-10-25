@@ -169,8 +169,13 @@
     for (var i = 0; i < CH.length; i++) if (CH[i].id === id) return i;
     return -1;
   }
-  function shortLabel(c) {
-    return c.label.replace(c.part, "").trim() || c.label;
+  // 화 번호는 처음부터 이어지게(1화, 2화, 3화…). 부(프롤로그 · 1부…)는 목차의 묶음과 화 제목 위에만 보인다
+  function numLabel(c) {
+    var n = parseInt(c.id, 10);
+    return lang() === "ja" ? "第" + n + "話" : n + "화";
+  }
+  function fullLabel(c) {
+    return c.part + " · " + numLabel(c);
   }
   function pctOf(id) {
     return Math.round((state.progress[id] || 0) * 100);
@@ -302,7 +307,7 @@
       box.innerHTML =
         '<a class="cont-card" href="#/read/' + c.id + '">' +
         '<p class="cont-kicker">' + kicker + "</p>" +
-        '<p class="cont-title">' + esc(c.label) + " · " + esc(c.title) + "</p>" +
+        '<p class="cont-title">' + esc(numLabel(c)) + " · " + esc(c.title) + "</p>" +
         (p > 0
           ? '<div class="cont-meta"><span>' + L.readPct(p) + "</span><span>" + (done ? L.waitNext : "") + "</span></div>" +
             '<div class="meter"><i style="width:' + p + '%"></i></div>'
@@ -333,7 +338,7 @@
       }
       html +=
         '<a class="toc-row' + (c.id === lastId ? " current" : "") + '" href="#/read/' + c.id + '">' +
-        '<span class="toc-no">' + esc(shortLabel(c)) + "</span>" +
+        '<span class="toc-no">' + esc(numLabel(c)) + "</span>" +
         '<span class="toc-title">' + esc(c.title) + "</span>" +
         '<span class="toc-state ' + cls + '">' + label + "</span></a>";
     });
@@ -481,11 +486,11 @@
     var next = CH[i + 1];
     var prev = CH[i - 1];
     page.innerHTML =
-      '<header class="ch-head"><p class="ch-part">' + esc(c.label) + '</p><h1 class="ch-title">' + esc(c.title) + "</h1></header>" +
+      '<header class="ch-head"><p class="ch-part">' + esc(fullLabel(c)) + '</p><h1 class="ch-title">' + esc(c.title) + "</h1></header>" +
       '<div class="body">' + body + "</div>" +
-      '<footer class="ch-end"><span class="star">✦</span><p>' + esc(L.end(c.label)) + "</p>" +
+      '<footer class="ch-end"><span class="star">✦</span><p>' + esc(L.end(numLabel(c))) + "</p>" +
       (next
-        ? '<button class="nav-next" type="button" data-go="' + next.id + '"><small>' + L.next + "</small><span>" + esc(next.label) + " · " + esc(next.title) + "</span></button>"
+        ? '<button class="nav-next" type="button" data-go="' + next.id + '"><small>' + L.next + "</small><span>" + esc(numLabel(next)) + " · " + esc(next.title) + "</span></button>"
         : '<p class="soon">' + L.soonNext + "</p>") +
       '<div class="nav-row">' +
       (prev ? '<button type="button" data-go="' + prev.id + '">' + L.prev + "</button>" : "<span></span>") +
@@ -496,8 +501,8 @@
     root.classList.add("reading");
     library.hidden = true;
     reader.hidden = false;
-    document.title = c.label + " · " + c.title;
-    $("bar-title").textContent = c.label;
+    document.title = numLabel(c) + " · " + c.title;
+    $("bar-title").textContent = fullLabel(c);
     themeMeta.content = THEME_COLOR[state.settings.theme];
 
     if (state.progress[c.id] == null) state.progress[c.id] = 0;
@@ -691,7 +696,7 @@
     history.replaceState(null, "", "#/read/" + state.last.id);
     route();
     var c = chapters()[find(state.last.id)];
-    toast(t().resumed(c.label, pctOf(c.id)));
+    toast(t().resumed(numLabel(c), pctOf(c.id)));
   } else {
     route();
   }
