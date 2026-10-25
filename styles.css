@@ -337,21 +337,8 @@ a {
   padding: var(--safe-t) calc(6px + var(--safe-r)) 0 calc(6px + var(--safe-l));
   border-bottom: 1px solid var(--line);
 }
-.bar-bottom {
-  bottom: 0;
-  justify-content: space-between;
-  height: calc(40px + var(--safe-b));
-  padding: 0 calc(20px + var(--safe-r)) var(--safe-b) calc(20px + var(--safe-l));
-  border-top: 1px solid var(--line);
-  font-size: 12px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
 .chrome-hidden .bar-top {
   transform: translateY(-100%);
-}
-.chrome-hidden .bar-bottom {
-  transform: translateY(100%);
 }
 .bar-btn {
   display: flex;
@@ -410,10 +397,71 @@ a {
   background: var(--accent);
 }
 
+/* 책장: 읽는 동안은 문서 스크롤을 막고, 본문을 화면 너비만큼의 단으로 흘린다.
+   단 사이 간격 = 좌우 여백 × 2 라서, 한 장 넘길 때마다 정확히 화면 너비만큼 옮기면 된다 (app.js 가 단 너비를 맞춘다) */
+html.reading,
+html.reading body {
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
+}
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  background: var(--bg);
+}
+.flow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--safe-t) + 46px);
+  bottom: calc(var(--safe-b) + 46px);
+  column-fill: auto;
+  will-change: transform;
+}
+.flow.turning {
+  transition: transform 0.38s var(--ease);
+}
+.folio {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-b) + 14px);
+  z-index: 5;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.safe-probe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  visibility: hidden;
+  pointer-events: none;
+}
+.hand,
+.orn,
+.ch-head,
+.ch-end {
+  break-inside: avoid;
+}
+.end-mark {
+  display: block;
+  height: 1px;
+}
+
 .page {
-  max-width: 36rem;
-  margin: 0 auto;
-  padding: calc(var(--safe-t) + 84px) calc(24px + var(--safe-r)) calc(var(--safe-b) + 64px) calc(24px + var(--safe-l));
   font-family: var(--serif);
   font-size: var(--fs);
   line-height: var(--lh);
@@ -428,6 +476,7 @@ a {
 }
 .ch-head {
   margin: 0 0 2.6em;
+  padding-top: 1.6em;
   text-align: center;
 }
 .ch-part {
@@ -444,12 +493,6 @@ a {
   font-size: 1.55em;
   font-weight: 700;
   line-height: 1.35;
-}
-.ch-meta {
-  margin: 12px 0 0;
-  font-family: var(--sans);
-  font-size: 12px;
-  color: var(--muted);
 }
 .body p {
   margin: 0 0 1.05em;
