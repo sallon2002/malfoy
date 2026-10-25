@@ -13,6 +13,11 @@ window.NOVEL = {
      "chars": 5071,
      "blocks": [
       [
+       "img",
+       "images/first-look.jpg",
+       "드레이코 말포이"
+      ],
+      [
        "p",
        "해리 포터는 평생 단 한 번, 누군가 내민 손을 거절한 적이 있다.",
        "f"
@@ -1344,6 +1349,11 @@ window.NOVEL = {
      "title": "りゅう座の娘",
      "chars": 4882,
      "blocks": [
+      [
+       "img",
+       "images/first-look.jpg",
+       "ドラコ・マルフォイ"
+      ],
       [
        "p",
        "ハリー・ポッターは生涯にただ一度だけ、差し出された手を拒んだことがある。",

@@ -9,6 +9,7 @@
 //   본문 (빈 줄로 문단 구분, *기울임*은 손글씨로 보인다)
 //   ---            ← 장면 전환
 //   ✦ ✦ ✦          ← 큰 전환 (시점·시간이 바뀔 때)
+//   ![설명](images/first-look.jpg)  ← 삽화 (홈페이지/images 안의 파일). 일본어판도 같은 자리에 같은 줄
 //   > 문단         ← 액자 (프롤로그의 어른 해리처럼 다른 시간의 장면). 한 톤 흐리게 보인다
 //   *(프롤로그 1화 끝)*  /  *(プロローグ 第1話 おわり)*   ← 지운다. 사이트가 끝 표시를 따로 그린다
 //
@@ -51,6 +52,14 @@ function parse(dir, file) {
       blocks.push(["orn"]);
       continue;
     }
+    // ![설명](images/파일.jpg) 한 줄은 삽화. 책 한 쪽을 통째로 차지한다
+    const img = chunk.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (img) {
+      const file = path.join(site, img[2]);
+      if (!fs.existsSync(file)) throw new Error(`${file}: 삽화 파일이 없어요 (${img[2]})`);
+      blocks.push(["img", img[2], esc(img[1])]);
+      continue;
+    }
     // "> " 로 시작하는 문단은 액자(다른 시간 · 다른 시점의 장면). 사이트에서 한 톤 흐리게 보인다
     const lines = chunk.split("\n").map((l) => l.trim());
     const frame = lines.every((l) => l.startsWith(">"));
@@ -60,17 +69,18 @@ function parse(dir, file) {
   }
 
   // 붙어 있는 전환 표시는 하나로: 큰 전환(✦)이 섞여 있으면 그것만 남긴다. 처음·끝의 전환은 지운다
+  const isBreak = (b) => b && (b[0] === "br" || b[0] === "orn");
   const merged = [];
   for (const b of blocks) {
     const prev = merged[merged.length - 1];
-    if (b[0] !== "p" && prev && prev[0] !== "p") {
+    if (isBreak(b) && isBreak(prev)) {
       if (b[0] === "orn") prev[0] = "orn";
       continue;
     }
     merged.push(b);
   }
-  while (merged.length && merged[0][0] !== "p") merged.shift();
-  while (merged.length && merged[merged.length - 1][0] !== "p") merged.pop();
+  while (merged.length && isBreak(merged[0])) merged.shift();
+  while (merged.length && isBreak(merged[merged.length - 1])) merged.pop();
 
   const no = file.match(/^(\d+)_/)[1];
   return { id: no, label, part, title, chars, blocks: merged };

@@ -770,6 +770,41 @@ html.reading body {
   text-indent: 1em;
 }
 
+/* 삽화: 책 한 쪽을 통째로. 앞뒤로 단을 끊어서 그림만 있는 쪽이 된다 */
+.illust {
+  break-before: column;
+  break-after: column;
+  break-inside: avoid;
+  height: var(--page-h, 100%); /* 한 장의 높이 (app.js 가 넣는다) — 그림을 쪽 가운데에 */
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.illust img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.55);
+}
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l);
+  background: #000;
+}
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 /* 액자: 지금 이야기와 다른 시간의 장면(프롤로그의 어른 해리 등). 본문보다 한 톤 흐리게, 읽기에는 지장 없을 만큼만 */
 .body p.frame {
   color: var(--muted);

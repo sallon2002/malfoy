@@ -411,6 +411,7 @@
     page.style.paddingRight = pad + "px";
     page.style.columnWidth = W - pad * 2 + "px";
     page.style.columnGap = pad * 2 + "px";
+    page.style.setProperty("--page-h", page.clientHeight + "px");
     var end = page.querySelector(".end-mark");
     pages = end ? pageOfRect(end.getBoundingClientRect()) + 1 : 1;
   }
@@ -475,8 +476,11 @@
     current = c;
     closeSheet();
 
+    // 삽화는 책 한 쪽을 통째로 쓴다. 화의 맨 앞 삽화는 제목보다 먼저 나온다 (펼치자마자 그림 → 넘기면 제목과 본문)
+    var head = '<header class="ch-head"><p class="ch-part">' + esc(fullLabel(c)) + '</p><h1 class="ch-title">' + esc(c.title) + "</h1></header>";
     var body = c.blocks
-      .map(function (b) {
+      .map(function (b, k) {
+        if (b[0] === "img") return '<figure class="illust"><img src="' + esc(b[1]) + '" alt="' + b[2] + '" decoding="async" /></figure>' + (k === 0 ? head : "");
         if (b[0] === "p") return para(b[1], b[2] === "f");
         if (b[0] === "orn") return '<div class="orn" aria-hidden="true">✦ ✦ ✦</div>';
         return '<div class="scene" aria-hidden="true"></div>';
@@ -486,7 +490,7 @@
     var next = CH[i + 1];
     var prev = CH[i - 1];
     page.innerHTML =
-      '<header class="ch-head"><p class="ch-part">' + esc(fullLabel(c)) + '</p><h1 class="ch-title">' + esc(c.title) + "</h1></header>" +
+      (c.blocks[0] && c.blocks[0][0] === "img" ? "" : head) +
       '<div class="body">' + body + "</div>" +
       '<footer class="ch-end"><span class="star">✦</span><p>' + esc(L.end(numLabel(c))) + "</p>" +
       (next
@@ -497,7 +501,7 @@
       '<button type="button" data-go="toc">' + L.toToc + "</button></div></footer>" +
       '<span class="end-mark"></span>';
 
-    bodyEls = Array.prototype.slice.call(page.querySelectorAll(".body > *"));
+    bodyEls = Array.prototype.slice.call(page.querySelectorAll(".body > :not(.ch-head)"));
     root.classList.add("reading");
     library.hidden = true;
     reader.hidden = false;
@@ -593,10 +597,22 @@
     }
     if (sheetOpen()) return;
     var x = e.clientX / pageW;
+    var pic = e.target.closest(".illust img");
     if (x < 0.3) prevPage();
     else if (x > 0.7) nextPage();
+    else if (pic) openLightbox(pic.getAttribute("src"), pic.alt); // 삽화 가운데를 치면 크게 보기
     else showChrome(reader.classList.contains("chrome-hidden"));
   }
+  // 삽화 크게 보기: 화면 가득, 아무 데나 치면 닫힌다
+  function openLightbox(src, alt) {
+    var box = $("lightbox");
+    box.innerHTML = '<img src="' + esc(src) + '" alt="' + esc(alt || "") + '" />';
+    box.hidden = false;
+  }
+  $("lightbox").addEventListener("click", function () {
+    this.hidden = true;
+    this.innerHTML = "";
+  });
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
 
