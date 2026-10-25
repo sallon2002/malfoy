@@ -770,6 +770,16 @@ html.reading body {
   text-indent: 1em;
 }
 
+/* 액자: 지금 이야기와 다른 시간의 장면(프롤로그의 어른 해리 등). 본문보다 한 톤 흐리게, 읽기에는 지장 없을 만큼만 */
+.body p.frame {
+  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 62%, var(--bg));
+}
+.body p.frame.hand {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
 /* 그림책 손글씨: 아이가 연필로 꾹꾹 눌러쓴 한 줄 */
 .body p.hand {
   margin: 1.4em 0 1.6em;

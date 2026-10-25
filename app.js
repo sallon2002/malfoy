@@ -380,11 +380,14 @@
   var pages = 1;
   var pageNo = 0;
 
-  // 문단 한 칸: 통째로 *기울임*인 문단은 그림책 손글씨, 일본어 지문은 첫머리를 한 칸 들여 쓴다
-  function para(html) {
-    if (/^<em>[^]*<\/em>$/.test(html)) return '<p class="hand">' + html + "</p>";
-    if (lang() === "ja" && !/^[「『（(〈《“"]/.test(html)) return '<p class="ind">' + html + "</p>";
-    return "<p>" + html + "</p>";
+  // 문단 한 칸: 통째로 *기울임*인 문단은 그림책 손글씨, 일본어 지문은 첫머리를 한 칸 들여 쓴다.
+  // 액자 문단(원고의 "> ")은 한 톤 흐리게 — 지금 이야기와 다른 시간이라는 표시
+  function para(html, frame) {
+    var cls = [];
+    if (frame) cls.push("frame");
+    if (/^<em>[^]*<\/em>$/.test(html)) cls.push("hand");
+    else if (lang() === "ja" && !/^[「『（(〈《“"]/.test(html)) cls.push("ind");
+    return (cls.length ? '<p class="' + cls.join(" ") + '">' : "<p>") + html + "</p>";
   }
 
   // 아이폰 노치·홈 바 여백 (CSS env 값을 읽어 온다)
@@ -469,7 +472,7 @@
 
     var body = c.blocks
       .map(function (b) {
-        if (b[0] === "p") return para(b[1]);
+        if (b[0] === "p") return para(b[1], b[2] === "f");
         if (b[0] === "orn") return '<div class="orn" aria-hidden="true">✦ ✦ ✦</div>';
         return '<div class="scene" aria-hidden="true"></div>';
       })

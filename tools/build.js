@@ -9,6 +9,7 @@
 //   본문 (빈 줄로 문단 구분, *기울임*은 손글씨로 보인다)
 //   ---            ← 장면 전환
 //   ✦ ✦ ✦          ← 큰 전환 (시점·시간이 바뀔 때)
+//   > 문단         ← 액자 (프롤로그의 어른 해리처럼 다른 시간의 장면). 한 톤 흐리게 보인다
 //   *(프롤로그 1화 끝)*  /  *(プロローグ 第1話 おわり)*   ← 지운다. 사이트가 끝 표시를 따로 그린다
 //
 // 일본어판은 한국어판과 문단이 1:1로 맞아야 한다. 그래야 KR⇄JP를 바꿔도 같은 문단에서 이어 읽는다.
@@ -50,9 +51,12 @@ function parse(dir, file) {
       blocks.push(["orn"]);
       continue;
     }
-    const text = chunk.split("\n").map((l) => l.trim()).join(" ");
+    // "> " 로 시작하는 문단은 액자(다른 시간 · 다른 시점의 장면). 사이트에서 한 톤 흐리게 보인다
+    const lines = chunk.split("\n").map((l) => l.trim());
+    const frame = lines.every((l) => l.startsWith(">"));
+    const text = lines.map((l) => (frame ? l.replace(/^>\s?/, "") : l)).join(" ");
     chars += text.replace(/\*/g, "").length;
-    blocks.push(["p", inline(text)]);
+    blocks.push(frame ? ["p", inline(text), "f"] : ["p", inline(text)]);
   }
 
   // 붙어 있는 전환 표시는 하나로: 큰 전환(✦)이 섞여 있으면 그것만 남긴다. 처음·끝의 전환은 지운다
