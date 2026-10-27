@@ -844,3 +844,38 @@ html.reading body {
     stroke-dashoffset: 0;
   }
 }
+
+/* ───────── 일본어판: 넘기지 않고 세로 스크롤로 읽기 ─────────
+   단(column) 나누기를 끄고, 본문을 위에서 아래로 흘린다. 막대는 내려 읽을 때 숨고 올리면 나타난다 */
+html.reading.scroll .stage {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+html.scroll .flow {
+  position: relative;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding-top: calc(var(--safe-t) + 64px);
+  padding-bottom: calc(var(--safe-b) + 72px);
+  column-width: auto;
+  column-gap: normal;
+  column-fill: balance;
+  transform: none !important;
+  will-change: auto;
+}
+html.scroll .illust {
+  height: auto;
+  margin: 2.4em 0;
+  break-before: auto;
+  break-after: auto;
+}
+html.scroll .illust img {
+  max-height: var(--page-h, 78vh);
+}

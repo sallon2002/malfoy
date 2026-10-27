@@ -177,6 +177,10 @@
   function fullLabel(c) {
     return c.part + " · " + numLabel(c);
   }
+  // 일본어판은 넘기지 않고 세로로 스크롤해서 읽는다
+  function scrollMode() {
+    return lang() === "ja";
+  }
   function pctOf(id) {
     return Math.round((state.progress[id] || 0) * 100);
   }
@@ -349,6 +353,7 @@
     closeSheet();
     current = null;
     root.classList.remove("reading");
+    root.classList.remove("scroll");
     reader.hidden = true;
     library.hidden = false;
     document.title = t().docTitle;
@@ -409,6 +414,16 @@
     pageW = W;
     page.style.paddingLeft = pad + "px";
     page.style.paddingRight = pad + "px";
+    if (scrollMode()) {
+      page.style.columnWidth = "";
+      page.style.columnGap = "";
+      page.style.transform = "";
+      page.style.setProperty("--page-h", Math.round(stage.clientHeight * 0.78) + "px");
+      pages = 1;
+      pageNo = 0;
+      return;
+    }
+    if (stage.scrollTop) stage.scrollTop = 0;
     page.style.columnWidth = W - pad * 2 + "px";
     page.style.columnGap = pad * 2 + "px";
     page.style.setProperty("--page-h", page.clientHeight + "px");
@@ -418,6 +433,49 @@
   function pageOfRect(r) {
     var x = r.left - page.getBoundingClientRect().left;
     return Math.max(0, Math.floor((x + 1) / pageW));
+  }
+
+  // ── 스크롤 모드 (일본어판) ──
+  var quietScroll = false; // 코드가 직접 스크롤을 옮길 때는 "손으로 읽었다"로 치지 않는다
+  var quietTimer = null;
+  function viewTop() {
+    return stage.getBoundingClientRect().top + insetTop() + 60;
+  }
+  function insetTop() {
+    return parseFloat(getComputedStyle($("safe-probe")).paddingTop) || 0;
+  }
+  function setScroll(y) {
+    quietScroll = true;
+    stage.scrollTop = Math.max(0, y);
+    clearTimeout(quietTimer);
+    quietTimer = setTimeout(function () {
+      quietScroll = false;
+    }, 120);
+    scrollProgress();
+  }
+  function scrollRatio() {
+    var max = stage.scrollHeight - stage.clientHeight;
+    return max > 0 ? Math.min(1, stage.scrollTop / max) : 1;
+  }
+  function scrollProgress() {
+    var r = scrollRatio();
+    $("folio").textContent = Math.round(r * 100) + "%";
+    $("progress").style.width = (r * 100).toFixed(1) + "%";
+  }
+  function scrollToAnchor(a) {
+    if (!a || (!a.i && !a.f)) return setScroll(0);
+    var el = bodyEls[Math.min(a.i || 0, bodyEls.length - 1)];
+    if (!el) return setScroll(0);
+    var r = el.getBoundingClientRect();
+    setScroll(stage.scrollTop + (r.top - viewTop()) + (a.f || 0) * r.height);
+  }
+  function scrollToEnd() {
+    setScroll(stage.scrollHeight);
+  }
+  // 글자 크기 · 언어 · 화면 크기가 바뀐 뒤 같은 문단으로 돌아간다
+  function placeAt(a) {
+    if (scrollMode()) scrollToAnchor(a);
+    else goTo(pageForAnchor(a), false);
   }
 
   function goTo(n, animate) {
@@ -432,6 +490,15 @@
   // 지금 장의 맨 위에 있는 문단과, 그 문단이 몇 번째 조각으로 이 장에 걸쳐 있는지
   function currentAnchor() {
     if (reader.hidden || !bodyEls.length) return null;
+    if (scrollMode()) {
+      if (stage.scrollTop < 4) return { i: 0, f: 0 };
+      var top = viewTop();
+      for (var j = 0; j < bodyEls.length; j++) {
+        var r = bodyEls[j].getBoundingClientRect();
+        if (r.bottom > top + 1) return { i: j, f: r.height > 0 ? Math.max(0, Math.min(0.999, (top - r.top) / r.height)) : 0 };
+      }
+      return { i: bodyEls.length - 1, f: 0.999 };
+    }
     for (var i = 0; i < bodyEls.length; i++) {
       var rects = bodyEls[i].getClientRects();
       for (var k = 0; k < rects.length; k++) {
@@ -459,7 +526,7 @@
   function relayout(keep) {
     sticky = keep;
     layout();
-    goTo(pageForAnchor(keep), false);
+    placeAt(keep);
   }
 
   // opts: resume(읽던 자리로, 다 읽은 화는 처음부터) · exact(언어를 바꿀 때처럼 무조건 그 문단으로) · atEnd(마지막 장으로)
@@ -503,6 +570,8 @@
 
     bodyEls = Array.prototype.slice.call(page.querySelectorAll(".body > :not(.ch-head)"));
     root.classList.add("reading");
+    root.classList.toggle("scroll", scrollMode());
+    page.classList.remove("turning");
     library.hidden = true;
     reader.hidden = false;
     document.title = numLabel(c) + " · " + c.title;
@@ -513,7 +582,11 @@
     var spot = opts.resume && state.last && state.last.id === c.id && (opts.exact || (state.progress[c.id] || 0) < 0.98) ? state.last : null;
     var place = function () {
       layout();
-      goTo(opts.atEnd ? pages - 1 : pageForAnchor(spot), false);
+      if (scrollMode()) {
+        if (opts.atEnd) scrollToEnd();
+        else scrollToAnchor(spot);
+        remember();
+      } else goTo(opts.atEnd ? pages - 1 : pageForAnchor(spot), false);
     };
     place();
     showChrome(true);
@@ -523,7 +596,8 @@
         if (current !== c || turned) return; // 그사이 장을 넘겼으면 그대로 둔다
         if (opts.atEnd && !sticky) {
           layout();
-          goTo(pages - 1, false);
+          if (scrollMode()) scrollToEnd();
+          else goTo(pages - 1, false);
         } else relayout(sticky || spot || { i: 0, f: 0 }); // 처음 열 때 기준으로 삼은 문단
       });
     }
@@ -566,12 +640,17 @@
   var drag = null;
   stage.addEventListener("pointerdown", function (e) {
     if (e.button > 0 || e.target.closest("button, a")) return;
-    drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, moved: false, id: e.pointerId };
+    drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, moved: false, id: e.pointerId, scroll: scrollMode() };
+    if (drag.scroll) return;
     page.classList.remove("turning");
   });
   stage.addEventListener("pointermove", function (e) {
     if (!drag || e.pointerId !== drag.id) return;
     var dx = e.clientX - drag.x;
+    if (drag.scroll) {
+      if (Math.abs(dx) > 8 || Math.abs(e.clientY - drag.y) > 8) drag.moved = true;
+      return;
+    }
     if (!drag.moved && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(e.clientY - drag.y)) {
       drag.moved = true;
       try {
@@ -587,6 +666,14 @@
     if (!drag || e.pointerId !== drag.id) return;
     var d = drag;
     drag = null;
+    if (d.scroll) {
+      // 스크롤 모드: 손가락으로 끌면 그냥 스크롤, 톡 치면 막대 보이기/숨기기 (삽화는 크게 보기)
+      if (e.type === "pointercancel" || d.moved || sheetOpen()) return;
+      var img = e.target.closest(".illust img");
+      if (img) openLightbox(img.getAttribute("src"), img.alt);
+      else showChrome(reader.classList.contains("chrome-hidden"));
+      return;
+    }
     if (e.type === "pointercancel") return goTo(pageNo, true);
     if (d.moved) {
       var v = d.dx / Math.max(1, Date.now() - d.t);
@@ -618,6 +705,18 @@
 
   document.addEventListener("keydown", function (e) {
     if (reader.hidden || sheetOpen()) return;
+    if (scrollMode()) {
+      var step = 0;
+      if (e.key === " " || e.key === "PageDown" || e.key === "ArrowRight") step = stage.clientHeight * 0.85;
+      else if (e.key === "PageUp" || e.key === "ArrowLeft") step = -stage.clientHeight * 0.85;
+      else if (e.key === "ArrowDown") step = 60;
+      else if (e.key === "ArrowUp") step = -60;
+      if (step) {
+        e.preventDefault();
+        stage.scrollBy({ top: step, behavior: "smooth" });
+      }
+      return;
+    }
     if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
       e.preventDefault();
       nextPage();
@@ -649,7 +748,7 @@
     var a = sticky || currentAnchor();
     if (!a) return;
     state.last = { id: current.id, i: a.i, f: Number(a.f.toFixed(3)), at: Date.now() };
-    var r = pages > 1 ? pageNo / (pages - 1) : 1;
+    var r = scrollMode() ? scrollRatio() : pages > 1 ? pageNo / (pages - 1) : 1;
     if (r > (state.progress[current.id] || 0)) state.progress[current.id] = Number(r.toFixed(3));
     save();
   }
@@ -657,6 +756,28 @@
   function showChrome(on) {
     reader.classList.toggle("chrome-hidden", !on);
   }
+
+  // 스크롤 모드: 읽는 만큼 진행 막대를 채우고, 내려 읽을 땐 막대를 숨기고 올리면 다시 보인다
+  var lastY = 0;
+  var saveTimer = null;
+  stage.addEventListener(
+    "scroll",
+    function () {
+      if (!scrollMode() || reader.hidden) return;
+      scrollProgress();
+      var y = stage.scrollTop;
+      if (!quietScroll) {
+        turned = true;
+        sticky = null;
+        if (y > lastY + 6 && y > 80) showChrome(false);
+        else if (y < lastY - 6) showChrome(true);
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(remember, 400);
+      }
+      lastY = y;
+    },
+    { passive: true }
+  );
 
   // 화면을 돌리거나 크기가 바뀌면 같은 문단을 지키며 다시 나눈다
   var resizeTimer = null;
